@@ -18,6 +18,9 @@ def json_handler(x):
         raise TypeError(x)
 
 
+js_edit_opts = {'require_save': True, 'extension': '.json'}
+
+
 @click.group()
 @click.option('-h', '--host', default='localhost', help='MongoDB host.')
 @click.option('-p', '--port', default=27017, help='MongoDB port.')
@@ -74,7 +77,8 @@ def list_docs(ctx, database, collection, filt):
 @click.option('-o', '--document-object-id', help='Document ObjectId value.')
 @click.option('-f', '--flatten/--no-flatten', default=False)
 @click.pass_context
-def show_doc(ctx, database, collection, document_id, document_object_id, flatten):
+def show_doc(ctx, database, collection, document_id, document_object_id,
+             flatten):
     """Show document by id"""
     cl = ctx.obj['MongoClient']
     db = cl[database]
@@ -85,7 +89,8 @@ def show_doc(ctx, database, collection, document_id, document_object_id, flatten
     elif document_object_id:
         filt = {'_id': ObjectId(document_object_id)}
     else:
-        raise RuntimeError("Either --document-object-id or --document-id should be set")
+        raise RuntimeError("Either --document-object-id or\
+                            --document-id should be set")
     data = coll.find_one(filt)
     if flatten:
         data = flatten_json.flatten_json(data)
@@ -104,11 +109,11 @@ def add_doc(ctx, database, collection):
     cl = ctx.obj['MongoClient']
     db = cl[database]
     coll = db[collection]
-    edit_json = {'title': 'titlename', 'key1': 'value1', 'key2': 'value2'}
-    edited_document = click.edit(json.dumps(edit_json, indent=4), require_save=True, extension='.json')
-    if edited_document:
+    new_doc = {'title': 'titlename', 'key1': 'value1', 'key2': 'value2'}
+    edited_doc = click.edit(json.dumps(new_doc, indent=4), **js_edit_opts)
+    if edited_doc:
         try:
-            data = json.loads(edited_document)
+            data = json.loads(edited_doc)
             print(json.dumps(data, indent=4, default=json_handler))
             inserted_id = coll.insert(data)
             print(f'Inserted ObjectId: {inserted_id}')
@@ -133,13 +138,14 @@ def edit_doc(ctx, database, collection, document_id, document_object_id):
     elif document_object_id:
         filt = {'_id': ObjectId(document_object_id)}
     else:
-        raise RuntimeError("Either --document-object-id or --document-id should be set")
+        raise RuntimeError("Either --document-object-id or\
+                            --document-id should be set")
     data = collection.find_one(filt)
-    dumped_object = json.loads(dumps(data))
-    edited_document = click.edit(json.dumps(dumped_object, indent=4), require_save=True, extension='.json')
-    if edited_document:
+    dumped_obj = json.loads(dumps(data))
+    edited_doc = click.edit(json.dumps(dumped_obj, indent=4), **js_edit_opts)
+    if edited_doc:
         try:
-            collection.replace_one(filt, loads(edited_document))
+            collection.replace_one(filt, loads(edited_doc))
         except Exception as ex:
             print('Json?', ex)
 
