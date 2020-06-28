@@ -20,11 +20,11 @@ def json_handler(x):
 
 @click.group()
 @click.option('-h', '--host', default='localhost', help='MongoDB host.')
-@click.option('-p', '--port', default='27017', help='MongoDB port.')
+@click.option('-p', '--port', default=27017, help='MongoDB port.')
 @click.pass_context
 def cli(ctx, host, port):
     ctx.ensure_object(dict)
-    ctx.obj['MongoClient'] = pymongo.MongoClient()
+    ctx.obj['MongoClient'] = pymongo.MongoClient(host=host, port=port)
 
 
 @cli.command()
