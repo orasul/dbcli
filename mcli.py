@@ -19,28 +19,30 @@ def json_handler(x):
 
 
 @click.group()
-def cli():
-    pass
+@click.option('-h', '--host', default='localhost', help='MongoDB host.')
+@click.option('-p', '--port', default='27017', help='MongoDB port.')
+@click.pass_context
+def cli(ctx, host, port):
+    ctx.ensure_object(dict)
+    ctx.obj['MongoClient'] = pymongo.MongoClient()
 
 
 @cli.command()
-@click.option('-h', '--host', default='localhost', help='MongoDB host.')
-@click.option('-p', '--port', default='27017', help='MongoDB port.')
-def list_dbs(host, port):
+@click.pass_context
+def list_dbs(ctx):
     """List databases in Mongo"""
-    cl = pymongo.MongoClient()
+    cl = ctx.obj['MongoClient']
     dbs = cl.list_databases()
     for db in dbs:
         print(db["name"])
 
 
 @cli.command()
-@click.option('-h', '--host', default='localhost', help='MongoDB host.')
-@click.option('-p', '--port', default='27017', help='MongoDB port.')
 @click.option('-d', '--database', help='Database name.')
-def list_cols(host, port, database):
+@click.pass_context
+def list_cols(ctx, database):
     """List collections in DB"""
-    cl = pymongo.MongoClient()
+    cl = ctx.obj['MongoClient']
     db = cl[database]
     cols = db.list_collections()
     for col in cols:
@@ -48,14 +50,13 @@ def list_cols(host, port, database):
 
 
 @cli.command()
-@click.option('-h', '--host', default='localhost', help='MongoDB host.')
-@click.option('-p', '--port', default='27017', help='MongoDB port.')
 @click.option('-d', '--database', help='Database name.')
 @click.option('-c', '--collection', help='Collection.')
 @click.option('-f', '--filter', 'filt', default='{}', help='Filter json.')
-def list_docs(host, port, database, collection, filt):
+@click.pass_context
+def list_docs(ctx, database, collection, filt):
     """List document ids from collection"""
-    cl = pymongo.MongoClient()
+    cl = ctx.obj['MongoClient']
     db = cl[database]
     coll = db[collection]
     filt = json.loads(filt)
@@ -67,16 +68,15 @@ def list_docs(host, port, database, collection, filt):
 
 
 @cli.command()
-@click.option('-h', '--host', default='localhost', help='MongoDB host.')
-@click.option('-p', '--port', default='27017', help='MongoDB port.')
 @click.option('-d', '--database', help='Database name.')
 @click.option('-c', '--collection', help='Collection.')
 @click.option('-i', '--document-id', help='Document _id value.')
 @click.option('-o', '--document-object-id', help='Document ObjectId value.')
 @click.option('-f', '--flatten/--no-flatten', default=False)
-def show_doc(host, port, database, collection, document_id, document_object_id, flatten):
-    """List document ids from collection"""
-    cl = pymongo.MongoClient()
+@click.pass_context
+def show_doc(ctx, database, collection, document_id, document_object_id, flatten):
+    """Show document by id"""
+    cl = ctx.obj['MongoClient']
     db = cl[database]
     coll = db[collection]
     if document_id:
@@ -96,13 +96,12 @@ def show_doc(host, port, database, collection, document_id, document_object_id, 
 
 
 @cli.command()
-@click.option('-h', '--host', default='localhost', help='MongoDB host.')
-@click.option('-p', '--port', default='27017', help='MongoDB port.')
 @click.option('-d', '--database', help='Database name.')
 @click.option('-c', '--collection', help='Collection.')
-def add_doc(host, port, database, collection):
-    """List document ids from collection"""
-    cl = pymongo.MongoClient()
+@click.pass_context
+def add_doc(ctx, database, collection):
+    """Add document to collection"""
+    cl = ctx.obj['MongoClient']
     db = cl[database]
     coll = db[collection]
     edit_json = {'title': 'titlename', 'key1': 'value1', 'key2': 'value2'}
@@ -118,15 +117,14 @@ def add_doc(host, port, database, collection):
 
 
 @cli.command()
-@click.option('-h', '--host', default='localhost', help='MongoDB host.')
-@click.option('-p', '--port', default='27017', help='MongoDB port.')
 @click.option('-d', '--database', help='Database name.')
 @click.option('-c', '--collection', help='Collection.')
 @click.option('-i', '--document-id', help='Document _id value.')
 @click.option('-o', '--document-object-id', help='Document ObjectId value.')
-def edit_doc(host, port, database, collection, document_id, document_object_id):
-    """List document ids from collection"""
-    cl = pymongo.MongoClient()
+@click.pass_context
+def edit_doc(ctx, database, collection, document_id, document_object_id):
+    """Edit document"""
+    cl = ctx.obj['MongoClient']
     db = cl[database]
     collection = db[collection]
     if document_id:
@@ -147,4 +145,4 @@ def edit_doc(host, port, database, collection, document_id, document_object_id):
 
 
 if __name__ == '__main__':
-    cli()
+    cli(obj={})
