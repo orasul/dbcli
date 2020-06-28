@@ -6,6 +6,7 @@ import json
 import datetime
 from bson.objectid import ObjectId
 import flatten_json
+from bson.json_util import dumps, loads
 
 
 def json_handler(x):
@@ -111,6 +112,35 @@ def add_doc(host, port, database, collection):
             data = json.loads(edited_document)
             print(json.dumps(data, indent=4, default=json_handler))
             projects.insert(data)
+        except Exception as ex:
+            print('Json?', ex)
+
+
+@cli.command()
+@click.option('-h', '--host', default='localhost', help='MongoDB host.')
+@click.option('-p', '--port', default='27017', help='MongoDB port.')
+@click.option('-d', '--database', help='Database name.')
+@click.option('-c', '--collection', help='Collection.')
+@click.option('-i', '--document-id', help='Document _id value.')
+@click.option('-o', '--document-object-id', help='Document ObjectId value.')
+def edit_doc(host, port, database, collection, document_id, document_object_id):
+    """List document ids from collection"""
+    cl = pymongo.MongoClient()
+    db = cl[database]
+    collection = db[collection]
+    if document_id:
+        filt = '{'+f'"_id":"{document_id}"'+'}'
+        filt = json.loads(filt)
+    elif document_object_id:
+        filt = {'_id': ObjectId(document_object_id)}
+    else:
+        raise RuntimeError("Either --document-object-id or --document-id should be set")
+    data = collection.find_one(filt)
+    dumped_object = json.loads(dumps(data))
+    edited_document = click.edit(json.dumps(dumped_object, indent=4), require_save=True, extension='.json')
+    if edited_document:
+        try:
+            collection.replace_one(filt, loads(edited_document))
         except Exception as ex:
             print('Json?', ex)
 
