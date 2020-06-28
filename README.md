@@ -13,6 +13,8 @@ mcli show-doc --database aws --collection images -i ami-eede2314
 mcli show-doc --database aws --collection images --document-id ami-eede2314
 mcli show-doc -d gcloud -c elements -o 5ef869cf316dd267c64be59c
 mcli show-doc -d gcloud -c elements --document-object-id 5ef869cf316dd267c64be59c
+mcli edit-doc -d devops -c newcol -o 5ef865fceb8e7562e8eaf9f6
+mcli edit-doc -d devops -c newcol -i object-234
 ```
 
 Inspired by [dbcli](https://www.dbcli.com).
