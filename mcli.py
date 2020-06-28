@@ -57,9 +57,9 @@ def list_docs(host, port, database, collection, filt):
     """List document ids from collection"""
     cl = pymongo.MongoClient()
     db = cl[database]
-    projects = db[collection]
+    coll = db[collection]
     filt = json.loads(filt)
-    data = projects.find(filt)
+    data = coll.find(filt)
     for doc in data:
         if isinstance(doc["_id"], ObjectId):
             print("ObjectId: ", end="")
@@ -78,7 +78,7 @@ def show_doc(host, port, database, collection, document_id, document_object_id, 
     """List document ids from collection"""
     cl = pymongo.MongoClient()
     db = cl[database]
-    collection = db[collection]
+    coll = db[collection]
     if document_id:
         filt = '{'+f'"_id":"{document_id}"'+'}'
         filt = json.loads(filt)
@@ -86,7 +86,7 @@ def show_doc(host, port, database, collection, document_id, document_object_id, 
         filt = {'_id': ObjectId(document_object_id)}
     else:
         raise RuntimeError("Either --document-object-id or --document-id should be set")
-    data = collection.find_one(filt)
+    data = coll.find_one(filt)
     if flatten:
         data = flatten_json.flatten_json(data)
         for k, v in data.items():
@@ -104,14 +104,15 @@ def add_doc(host, port, database, collection):
     """List document ids from collection"""
     cl = pymongo.MongoClient()
     db = cl[database]
-    projects = db[collection]
+    coll = db[collection]
     edit_json = {'title': 'titlename', 'key1': 'value1', 'key2': 'value2'}
     edited_document = click.edit(json.dumps(edit_json, indent=4), require_save=True, extension='.json')
     if edited_document:
         try:
             data = json.loads(edited_document)
             print(json.dumps(data, indent=4, default=json_handler))
-            projects.insert(data)
+            inserted_id = coll.insert(data)
+            print(f'Inserted ObjectId: {inserted_id}')
         except Exception as ex:
             print('Json?', ex)
 
