@@ -5,6 +5,8 @@ import pymongo
 import json
 import datetime
 from bson.objectid import ObjectId
+import flatten_json
+
 
 def json_handler(x):
     if isinstance(x, datetime.datetime):
@@ -14,9 +16,11 @@ def json_handler(x):
     else:
         raise TypeError(x)
 
+
 @click.group()
 def cli():
     pass
+
 
 @cli.command()
 @click.option('-h', '--host', default='localhost', help='MongoDB host.')
@@ -28,10 +32,11 @@ def list_dbs(host, port):
     for db in dbs:
         print(db["name"])
 
+
 @cli.command()
 @click.option('-h', '--host', default='localhost', help='MongoDB host.')
 @click.option('-p', '--port', default='27017', help='MongoDB port.')
-@click.option('-d', '--database', default='devops', help='Database name.')
+@click.option('-d', '--database', help='Database name.')
 def list_cols(host, port, database):
     """List collections in DB"""
     cl = pymongo.MongoClient()
@@ -40,11 +45,12 @@ def list_cols(host, port, database):
     for col in cols:
         print(col["name"])
 
+
 @cli.command()
 @click.option('-h', '--host', default='localhost', help='MongoDB host.')
 @click.option('-p', '--port', default='27017', help='MongoDB port.')
-@click.option('-d', '--database', default='devops', help='Database name.')
-@click.option('-c', '--collection', default='projects', help='Collection.')
+@click.option('-d', '--database', help='Database name.')
+@click.option('-c', '--collection', help='Collection.')
 @click.option('-f', '--filter', 'filt', default='{}', help='Filter json.')
 def list_docs(host, port, database, collection, filt):
     """List document ids from collection"""
@@ -54,17 +60,20 @@ def list_docs(host, port, database, collection, filt):
     filt = json.loads(filt)
     data = projects.find(filt)
     for doc in data:
-        if isinstance(doc["_id"], ObjectId): print("ObjectId: ", end="")
+        if isinstance(doc["_id"], ObjectId):
+            print("ObjectId: ", end="")
         print(doc["_id"])
+
 
 @cli.command()
 @click.option('-h', '--host', default='localhost', help='MongoDB host.')
 @click.option('-p', '--port', default='27017', help='MongoDB port.')
-@click.option('-d', '--database', default='devops', help='Database name.')
-@click.option('-c', '--collection', default='projects', help='Collection.')
+@click.option('-d', '--database', help='Database name.')
+@click.option('-c', '--collection', help='Collection.')
 @click.option('-i', '--document-id', help='Document _id value.')
 @click.option('-o', '--document-object-id', help='Document ObjectId value.')
-def show_doc(host, port, database, collection, document_id, document_object_id):
+@click.option('-f', '--flatten/--no-flatten', default=False)
+def show_doc(host, port, database, collection, document_id, document_object_id, flatten):
     """List document ids from collection"""
     cl = pymongo.MongoClient()
     db = cl[database]
@@ -77,13 +86,19 @@ def show_doc(host, port, database, collection, document_id, document_object_id):
     else:
         raise RuntimeError("Either --document-object-id or --document-id should be set")
     data = collection.find_one(filt)
-    print(json.dumps(data, indent=4, default=json_handler))
+    if flatten:
+        data = flatten_json.flatten_json(data)
+        for k, v in data.items():
+            print(f'{k}: {v}')
+    else:
+        print(json.dumps(data, indent=4, default=json_handler))
+
 
 @cli.command()
 @click.option('-h', '--host', default='localhost', help='MongoDB host.')
 @click.option('-p', '--port', default='27017', help='MongoDB port.')
-@click.option('-d', '--database', default='devops', help='Database name.')
-@click.option('-c', '--collection', default='projects', help='Collection.')
+@click.option('-d', '--database', help='Database name.')
+@click.option('-c', '--collection', help='Collection.')
 def add_doc(host, port, database, collection):
     """List document ids from collection"""
     cl = pymongo.MongoClient()
@@ -98,6 +113,7 @@ def add_doc(host, port, database, collection):
             projects.insert(data)
         except Exception as ex:
             print('Json?', ex)
+
 
 if __name__ == '__main__':
     cli()
