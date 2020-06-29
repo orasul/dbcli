@@ -1,7 +1,7 @@
 # dbcli
 DataBase cli utilities
 * mcli - Mongo client based on pymongo
-* rcli - Redis client based on pymongo
+* rcli - Redis client based on pyredis (not implemented yet)
 
 #### mcli usage examples
 ``` bash
