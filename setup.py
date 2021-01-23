@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
-setup(name='dbcli_mongo_redis',
+setup(name='dbcli',
       version='0.3.1',
       description='Mongo and redis cli',
       url='https://github.com/orasul/dbcli',
-      packages=['dbcli_mongo_redis.mcli', 'dbcli_mongo_redis.rcli'],
+      packages=find_packages(),
       author='Rasul Osmanov',
       install_requires=[
           'click',
@@ -15,8 +15,8 @@ setup(name='dbcli_mongo_redis',
       ],
       entry_points={
           'console_scripts': [
-              'rcli = dbcli_mongo_redis.rcli.rcli:_main',
-              'mcli = dbcli_mongo_redis.mcli.mcli:_main',
+              'rcli = dbcli.rcli:_main',
+              'mcli = dbcli.mcli:_main',
           ],
       },
       include_package_data=True)

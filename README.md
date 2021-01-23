@@ -1,22 +1,40 @@
 # dbcli
 DataBase cli utilities
 * mcli - Mongo client based on pymongo
-* rcli - Redis client based on pyredis (not implemented yet)
+* rcli - Redis client based on pyredis
 
 #### mcli usage examples
 ``` bash
 mcli list-dbs
 mcli list-cols -d books
-mcli list-docs -d books -c authors
-mcli show-doc -d aws -c images -i ami-eede2314
-mcli show-doc --database aws --collection images -i ami-eede2314
-mcli show-doc --database aws --collection images --document-id ami-eede2314
-mcli show-doc -d gcloud -c elements -o 5ef869cf316dd267c64be59c
-mcli show-doc -d gcloud -c elements --document-object-id 5ef869cf316dd267c64be59c
-mcli edit-doc -d devops -c newcol -o 5ef865fceb8e7562e8eaf9f6
-mcli edit-doc -d devops -c newcol -i object-234
+mcli -d books -c authors list-docs
+mcli -d aws -c images show-doc -i ami-eede2314
+mcli --database aws --collection images show-doc -i ami-eede2314
+mcli --database aws --collection images show-doc --document-id ami-eede2314
+mcli -d gcloud -c elements show-doc -o 5ef869cf316dd267c64be59c
+mcli -d gcloud -c elements show-doc --document-object-id 5ef869cf316dd267c64be59c
+mcli -d devops -c newcol edit-doc -o 5ef865fceb8e7562e8eaf9f6
+mcli -d devops -c newcol edit-doc  -i object-234
+mcli -d devops -c newcol del-doc -i object-234
+mcli -d devops -c newcol del-doc -o 5ef865fceb8e7562e8eaf9f6
 ```
 
+#### rcli usage examples
+```bash
+rcli db-count
+rcli list-keys
+rcli list-keys -p image
+rcli show-db
+rcli show-db -k image_325
+rcli show-db -p image_
+rcli add-data
+rcli add-key
+rcli add-key -t hash
+rcli edit-doc -k image_325
+rcli del-doc -k image_214
+rcli to-set -k some_list
+rcli to-zset -k some_hash
+```
 Inspired by [dbcli](https://www.dbcli.com).
 
 ## Limitations

@@ -3,7 +3,7 @@ import redis
 from click.testing import CliRunner
 from mock import Mock
 
-from dbcli_mongo_redis.rcli.rcli import cli
+from rcli import cli
 
 r = redis.Redis()
 r.flushdb()

@@ -4,7 +4,7 @@ from bson.objectid import ObjectId
 from click.testing import CliRunner
 from mock import Mock
 
-from dbcli_mongo_redis.mcli.mcli import cli
+from mcli import cli
 
 m = pymongo.MongoClient(host="localhost", port=27017)
 m.drop_database("mcli_db_test")
