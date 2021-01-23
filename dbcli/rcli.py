@@ -10,6 +10,7 @@ js_edit_opts = {"require_save": False, "extension": ".js"}
 def multiple_add(cl, edited_doc):
     data = json.loads(edited_doc)
     with cl.pipeline() as pipe:
+        # set value to key depends on type of value
         for key, value in data.items():
             if isinstance(value, dict):
                 pipe.hmset(key, value)
@@ -21,7 +22,10 @@ def multiple_add(cl, edited_doc):
 
 
 def add_any_key_type(cl, edited_doc, key_type, key):
+    # TODO: make less complex
+    #    check type in new func
     data = json.loads(edited_doc)
+    # set value to key depends on type of value
     if key_type == "string":
         cl.set(key, data)
     elif key_type == "bits":
@@ -33,6 +37,7 @@ def add_any_key_type(cl, edited_doc, key_type, key):
     elif key_type == "set":
         cl.sadd(key, *data)
     elif key_type == "zset":
+        # if value list of tuples/list turns it to dict
         try:
             cl.zadd(key, data)
         except AttributeError:
@@ -78,21 +83,7 @@ def bytes_to_string(structure):
 @click.option("-d", "--db", default=0, help="Database number.")
 @click.pass_context
 def cli(ctx, host, port, db):
-    """Redis client based on redis-py \n
-    Usage ex: \n
-        rcli list-keys \n
-        rcli list-keys -p image \n
-        rcli show-db \n
-        rcli show-db -p image_ \n
-        rcli add-key key_name \n
-        rcli add-key key_name [-h|-s|-l|-z|-e|-b] \n
-        rcli add-data
-        rcli edit-doc image_325 \n
-        rcli del-key image_214 \n
-        rcli to-set some_list \n
-        rcli to-zset some_hash \n
-
-    """
+    """Redis client based on redis-py"""
     ctx.ensure_object(dict)
     ctx.obj["RedisClient"] = redis.Redis(host=host, port=port, db=db)
     return ctx.obj["RedisClient"]
@@ -154,6 +145,8 @@ def show_db(ctx, key, pattern):
 @click.pass_context
 def add_key(ctx, key, bits, lst, hsh, st, zst, hyll):
     """Add key to db. Don't support streams and geo."""
+    # TODO: make less complex
+    #   check type in new func
     cl = ctx.obj["RedisClient"]
     key_type = None
     types_dict = {
@@ -164,12 +157,14 @@ def add_key(ctx, key, bits, lst, hsh, st, zst, hyll):
         "zset": zst,
         "hyll": hyll,
     }
+    # Check for multiple types incoming
     for ke, value in types_dict.items():
         if value:
             if key_type is None:
                 key_type = ke
             else:
                 raise click.ClickException("Only one key type can be set")
+    # set type of key to key_type
     if key_type is None:
         key_type = "string"
     if key_type == "string":
@@ -218,7 +213,10 @@ def edit_doc(ctx, key):
     """Open document in editor. Support only json-format.
 
     KEY: key of the document"""
+    # TODO: make less complex
+    #    check type in new func
     cl = ctx.obj["RedisClient"]
+    # set type to key_type and get key's value
     if cl.type(key) == b"string":
         key_type = "string"
         try:
@@ -248,14 +246,14 @@ def edit_doc(ctx, key):
     )
     if edited_doc:
         try:
+            # get key name (in case of changing)
             new_key = [*json.loads(edited_doc).keys()]
+            # check for multiple keys
             if len(new_key) != 1:
                 raise click.ClickException("Only one key can be edited")
             cl.delete(key)
             data = json.loads(edited_doc)[new_key[0]]
-            add_any_key_type(
-                cl, json.dumps(data), key_type, new_key[0]
-            )
+            add_any_key_type(cl, json.dumps(data), key_type, new_key[0])
         except Exception as ex:
             print("Key was not edited: ", ex)
             add_any_key_type(cl, json.dumps(new_doc[key]), key_type, key)
@@ -276,6 +274,7 @@ def del_key(ctx, key):
 def to_set(ctx, key):
     """Turn redis list to set."""
     cl = ctx.obj["RedisClient"]
+    # get key's value and set with new type
     if cl.type(key) == b"list":
         data = cl.lrange(key, 0, -1)
         cl.delete(key)
@@ -292,6 +291,7 @@ def to_set(ctx, key):
 def to_zset(ctx, key):
     """Turn redis hash into sorted set."""
     cl = ctx.obj["RedisClient"]
+    # get key's value and set with new type
     if cl.type(key) == b"hash":
         data = cl.hgetall(key)
         try:

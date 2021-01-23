@@ -95,6 +95,7 @@ def show_doc(ctx, document_id, document_object_id, flatten):
                             --document-id should be set"
         )
     data = coll.find_one(filt)
+    # print result using flatten json format
     if flatten:
         if data:
             data = flatten_json.flatten_json(data)
@@ -162,6 +163,7 @@ def edit_doc(ctx, document_id, document_object_id):
 def del_doc(ctx, document_id, document_object_id):
     """Delete document from db"""
     collection = ctx.obj["Collection"]
+    # make filter using id or object_id
     if document_id:
         filt = "{" + f'"_id":"{document_id}"' + "}"
         filt = json.loads(filt)
