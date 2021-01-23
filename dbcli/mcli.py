@@ -18,7 +18,7 @@ def json_handler(x):
         raise TypeError(x)
 
 
-js_edit_opts = {"require_save": False, "extension": ".json"}
+js_opts = {"require_save": False, "extension": ".json"}
 
 
 @click.group()
@@ -28,22 +28,7 @@ js_edit_opts = {"require_save": False, "extension": ".json"}
 @click.option("-c", "--collection", help="Collection.")
 @click.pass_context
 def cli(ctx, host, port, database, collection):
-    """Mongo client based on pymongo \n
-    mcli usage examples: \n
-    mcli list-dbs \n
-    mcli list-cols -d books \n
-    mcli -d books -c authors list-docs \n
-    mcli -d aws -c images show-doc -i ami-eede2314 \n
-    mcli --database aws --collection images show-doc -i ami-eede2314 \n
-    mcli --database aws --collection images show-doc --document-id ami-eede2314 \n
-    mcli -d gcloud -c elements show-doc -o 5ef869cf316dd267c64be59c \n
-    mcli -d gcloud -c elements show-doc --document-object-id 5ef869cf316dd267c64be59c \n
-    mcli -d devops -c newcol edit-doc -o 5ef865fceb8e7562e8eaf9f6 \n
-    mcli -d devops -c newcol edit-doc  -i object-234 \n
-    mcli -d devops -c newcol del-doc -i object-234 \n
-    mcli -d devops -c newcol del-doc -o 5ef865fceb8e7562e8eaf9f6 \n
-
-    """
+    """Mongo client based on pymongo"""
     ctx.ensure_object(dict)
     cl = pymongo.MongoClient(host=host, port=port)
     if database and collection:
@@ -127,7 +112,7 @@ def add_doc(ctx):
     """Add document to collection"""
     coll = ctx.obj["Collection"]
     new_doc = {"title": "titlename", "key1": "value1", "key2": "value2"}
-    edited_doc = click.edit(json.dumps(new_doc, indent=4), **js_edit_opts)
+    edited_doc = click.edit(json.dumps(new_doc, indent=4), **js_opts)
     # insert json-format data into db
     if edited_doc:
         try:
@@ -160,7 +145,7 @@ def edit_doc(ctx, document_id, document_object_id):
     data = collection.find_one(filt)
     if data:
         dumped_obj = json.loads(dumps(data))
-        edited_doc = click.edit(json.dumps(dumped_obj, indent=4), **js_edit_opts)
+        edited_doc = click.edit(json.dumps(dumped_obj, indent=4), **js_opts)
     else:
         raise click.ClickException("No document with this id or ObjectId")
     if edited_doc:

@@ -149,8 +149,8 @@ def show_db(ctx, key, pattern):
 @click.option("-l", "--lst/--no-lst", default=False, help="List type key")
 @click.option("-h", "--hsh/--no-hsh", default=False, help="Hash type key")
 @click.option("-s", "--st/--no-st", default=False, help="Set type key")
-@click.option("-z", "--zst/--no-zst", default=False, help="Sorted set type key")
-@click.option("-e", "--hyll/--no-hyll", default=False, help="HyperLogLog type key")
+@click.option("-z", "--zst/--no-zst", default=False, help="Zset type key")
+@click.option("-e", "--hyll/--no-hyll", default=False, help="HyLL type key")
 @click.pass_context
 def add_key(ctx, key, bits, lst, hsh, st, zst, hyll):
     """Add key to db. Don't support streams and geo."""
@@ -250,10 +250,11 @@ def edit_doc(ctx, key):
         try:
             new_key = [*json.loads(edited_doc).keys()]
             if len(new_key) != 1:
-                raise click.ClickException("Only one key can be edited at a time")
+                raise click.ClickException("Only one key can be edited")
             cl.delete(key)
+            data = json.loads(edited_doc)[new_key[0]]
             add_any_key_type(
-                cl, json.dumps(json.loads(edited_doc)[new_key[0]]), key_type, new_key[0]
+                cl, json.dumps(data), key_type, new_key[0]
             )
         except Exception as ex:
             print("Key was not edited: ", ex)
