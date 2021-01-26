@@ -9,6 +9,10 @@ from bson.json_util import dumps, loads
 from bson.objectid import ObjectId
 
 
+# From json.dump documentation: If specified, default should be a function
+# that gets called for objects that can’t otherwise be serialized. It should
+# return a JSON encodable version of the object or raise a TypeError. If not
+# specified, TypeError is raised.
 def json_handler(x):
     if isinstance(x, datetime.datetime):
         return x.isoformat()
