@@ -4,7 +4,7 @@ from bson.objectid import ObjectId
 from click.testing import CliRunner
 from mock import Mock
 
-from mcli import cli
+from dbcli.mcli import cli
 
 m = pymongo.MongoClient(host="localhost", port=27017)
 name = "mcli_db_test"
@@ -24,7 +24,7 @@ def get_data():
 
 
 def test_add_to_db():
-    click.edit = Mock(return_value='{"_id": "123",' '"key1": "value1"}')
+    click.edit = Mock(return_value='{"_id": "12",' '"key1": "value1"}')
     runner.invoke(cli, ["-d", name, "-c", "first", "add-doc"])
     click.edit = Mock(return_value='{"key2": "value3"}')
     runner.invoke(cli, ["-d", name, "-c", "first", "add-doc"])
@@ -33,7 +33,7 @@ def test_add_to_db():
     for item in val:
         data.append(item)
 
-    assert data[0] == {"_id": "123", "key1": "value1"}
+    assert data[0] == {"_id": "12", "key1": "value1"}
     assert data[1] == {"_id": ObjectId(f'{data[1]["_id"]}'), "key2": "value3"}
 
 
@@ -52,12 +52,12 @@ def test_show_doc_with_id_and_objectid():
         '"key2": "value3"\n'
         "}\n"
     )
-    assert result2.stdout == "{\n    " '"_id": "123",\n    ' '"key1": "value1"\n' "}\n"
+    assert result2.stdout == "{\n    " '"_id": "12",\n    ' '"key1": "value1"\n' "}\n"
 
 
 def test_edit_doc():
     click.edit = Mock(return_value='{"_id": "12",' '"new_key1": "new_value1"}')
-    runner.invoke(cli, ["-d", name, "-c", "first", "edit-doc", "-i", "123"])
+    runner.invoke(cli, ["-d", name, "-c", "first", "edit-doc", "-i", "12"])
 
     data = get_data()
 

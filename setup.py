@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name="dbcli",
-    version="0.3.1",
+    name="dbcli_mongo_redis",
+    version="0.3.2",
     description="Mongo and redis cli",
     url="https://github.com/orasul/dbcli",
     packages=find_packages(),

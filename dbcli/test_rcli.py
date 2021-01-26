@@ -3,7 +3,7 @@ import redis
 from click.testing import CliRunner
 from mock import Mock
 
-from rcli import cli
+from dbcli.rcli import cli
 
 r = redis.Redis()
 r.flushdb()
@@ -36,18 +36,6 @@ def test_edit_doc():
     assert r.lrange("key3", 0, -1) == [b"val31", b"val32"]
 
 
-def test_show_db_with_pattern_and_with_key():
-    result1 = runner.invoke(cli, ["show-db", "-p", "key*"])
-    result2 = runner.invoke(cli, ["show-db", "-k", "key1"])
-
-    assert (
-        result1.stdout == "b'key3' :  [b'val31', b'val32']\n"
-        "b'key2' :  {b'key21': b'val21'}\n"
-        "b'key1' :  b'val1'\n"
-    )
-    assert result2.stdout == "b'key1' :  b'val1'\n"
-
-
 def test_list_to_set():
     runner.invoke(cli, ["to-set", "key3"])
     assert r.type("key3") == b"set"
@@ -60,8 +48,8 @@ def test_hash_to_zset():
     assert r.type("sset") == b"zset"
 
 
-def test_delete_doc():
+def test_delete_key():
     r.set("some_key", "some_value")
-    runner.invoke(cli, ["del-doc", "some_key"])
+    runner.invoke(cli, ["del-key", "some_key"])
 
     assert r.get("some_key") is None

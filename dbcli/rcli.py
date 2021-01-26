@@ -22,34 +22,31 @@ def multiple_add(cl, edited_doc):
 
 
 def add_any_key_type(cl, edited_doc, key_type, key):
-    # TODO: make less complex
-    #    check type in new func
     data = json.loads(edited_doc)
-    # set value to key depends on type of value
-    if key_type == "string":
-        cl.set(key, data)
-    elif key_type == "bits":
-        cl.setbit(key, data["offset"], data["value"])
-    elif key_type == "list":
-        cl.rpush(key, *data)
-    elif key_type == "hash":
-        cl.hmset(key, data)
-    elif key_type == "set":
-        cl.sadd(key, *data)
-    elif key_type == "zset":
-        # if value list of tuples/list turns it to dict
+    append_func = {
+        "string": cl.set,
+        "list": cl.rpush,
+        "hash": cl.hmset,
+        "set": cl.sadd,
+        "zset": cl.zadd,
+        "hyll": cl.pfadd,
+    }
+    if key_type in ["string", "hash", "zset"]:
         try:
-            cl.zadd(key, data)
+            append_func[key_type](key, data)
         except AttributeError:
+            # if value list of tuples/list turns it to dict
             dct = {}
             for item in data:
                 dct[item[0]] = item[1]
-            cl.zadd(key, dct)
-    elif key_type == "hyll":
-        cl.pfadd(key, *data)
+            append_func[key_type](key, dct)
+    elif key_type in ["list", "set", "hyll"]:
+        append_func[key_type](key, *data)
+    elif key_type == "bits":
+        cl.setbit(key, data["offset"], data["value"])
 
 
-def bytes_to_string(structure):
+def b_to_str(structure):
     new_dct = {}
 
     def a(data):
@@ -119,15 +116,12 @@ def show_db(ctx, key, pattern):
     else:
         keys_list = cl.keys(pattern=pattern)
     # check key type and get key's value
+    type_dct = {b"string": cl.get, b"set": cl.smembers, b"hash": cl.hgetall}
     for key in keys_list:
-        if cl.type(key) == b"string":
-            print(key, ": ", cl.get(key))
-        elif cl.type(key) == b"hash":
-            print(key, ": ", cl.hgetall(key))
+        if cl.type(key) in type_dct:
+            print(key, ": ", type_dct[cl.type(key)](key))
         elif cl.type(key) == b"list":
             print(key, ": ", cl.lrange(key, 0, -1))
-        elif cl.type(key) == b"set":
-            print(key, ": ", cl.smembers(key))
         elif cl.type(key) == b"zset":
             print(key, ": ", cl.zrange(key, 0, -1, withscores=True))
         else:
@@ -145,8 +139,6 @@ def show_db(ctx, key, pattern):
 @click.pass_context
 def add_key(ctx, key, bits, lst, hsh, st, zst, hyll):
     """Add key to db. Don't support streams and geo."""
-    # TODO: make less complex
-    #   check type in new func
     cl = ctx.obj["RedisClient"]
     key_type = None
     types_dict = {
@@ -164,23 +156,20 @@ def add_key(ctx, key, bits, lst, hsh, st, zst, hyll):
                 key_type = ke
             else:
                 raise click.ClickException("Only one key type can be set")
+    new_value_dct = {
+        "string": "value",
+        "list": ["value1", "value2", "value3"],
+        "set": ["value1", "value2", "value3"],
+        "bits": {"offset": 1, "value": 1},
+        "zset": {"key1": 1.1, "key2": 1.2},
+        "hash": {"key1": "value1", "key2": "value2"},
+        "hyll": ["1", "2", "3", "4"],
+    }
     # set type of key to key_type
     if key_type is None:
         key_type = "string"
-    if key_type == "string":
-        new_doc = "value"
-    elif key_type == "list":
-        new_doc = ["value1", "value2", "value3"]
-    elif key_type == "set":
-        new_doc = ["value1", "value2", "value3"]
-    elif key_type == "bits":
-        new_doc = {"offset": 1, "value": 1}
-    elif key_type == "zset":
-        new_doc = {"key1": 1.1, "key2": 1.2}
-    elif key_type == "hash":
-        new_doc = {"key1": "value1", "key2": "value2"}
-    elif key_type == "hyll":
-        new_doc = ["1", "2", "3", "4"]
+    if key_type in new_value_dct:
+        new_doc = new_value_dct[key_type]
     else:
         print(key_type)
         raise click.ClickException("Key type should be set")
@@ -213,33 +202,31 @@ def edit_doc(ctx, key):
     """Open document in editor. Support only json-format.
 
     KEY: key of the document"""
-    # TODO: make less complex
-    #    check type in new func
     cl = ctx.obj["RedisClient"]
+    type_dct = {
+        b"string": ["string", cl.get],
+        b"set": ["set", cl.smembers],
+        b"hash": ["hash", cl.hgetall],
+    }
     # set type to key_type and get key's value
-    if cl.type(key) == b"string":
-        key_type = "string"
+    k_type = cl.type(key)
+    if k_type in type_dct:
+        key_type = type_dct[k_type][0]
         try:
-            new_doc = {key: cl.get(key).decode("utf-8")}
+            new_doc = b_to_str({key.encode("utf-8"): type_dct[k_type][1](key)})
         except UnicodeDecodeError:
             raise click.ClickException("HyperLogLog cant be edited")
-    elif cl.type(key) == b"list":
+    elif k_type == b"list":
         key_type = "list"
-        new_doc = bytes_to_string({key.encode("utf-8"): cl.lrange(key, 0, -1)})
-    elif cl.type(key) == b"set":
-        key_type = "set"
-        new_doc = bytes_to_string({key.encode("utf-8"): cl.smembers(key)})
-    elif cl.type(key) == b"hash":
-        key_type = "hash"
-        new_doc = bytes_to_string({key.encode("utf-8"): cl.hgetall(key)})
-    elif cl.type(key) == b"zset":
+        new_doc = b_to_str({key.encode("utf-8"): cl.lrange(key, 0, -1)})
+    elif k_type == b"zset":
         key_type = "zset"
-        new_doc = bytes_to_string(
+        new_doc = b_to_str(
             {key.encode("utf-8"): cl.zrange(key, 0, -1, withscores=True)}
         )
     else:
         raise click.ClickException(
-            f'Wrong key: "{key}" or unsupported key type: "{cl.type(key)}"'
+            f'Wrong key: "{key}" or unsupported key type: "{k_type}"'
         )
     edited_doc = click.edit(
         json.dumps(new_doc, indent=4), require_save=True, extension=".js"
