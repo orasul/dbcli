@@ -133,8 +133,7 @@ def edit_doc(ctx, document_id, document_object_id):
     collection = ctx.obj["Collection"]
     # make filter using id or object_id
     if document_id:
-        filt = "{" + f'"_id":"{document_id}"' + "}"
-        filt = json.loads(filt)
+        filt = {"_id": document_id}
     elif document_object_id:
         filt = {"_id": ObjectId(document_object_id)}
     else:
@@ -164,8 +163,7 @@ def del_doc(ctx, document_id, document_object_id):
     collection = ctx.obj["Collection"]
     # make filter using id or object_id
     if document_id:
-        filt = "{" + f'"_id":"{document_id}"' + "}"
-        filt = json.loads(filt)
+        filt = {"_id": document_id}
     elif document_object_id:
         filt = {"_id": ObjectId(document_object_id)}
     else:
