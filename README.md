@@ -64,6 +64,6 @@ limitations under the License.
 
 ## TODO
 ```text
-- append geo-type support
-- optimize logic
+- AWS DynamoDB client
+- Google Cloud DataStore client
 ```
