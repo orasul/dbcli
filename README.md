@@ -44,7 +44,7 @@ Should avoid using in production and for huge amount of data.
 
 ## License & Authors
 
-- Author:: Rasul Osmanov
+- Authors:: Rasul Osmanov, Artur Krasnykh
 
 ```text
 Copyright (c) 2020, Rasul Osmanov
