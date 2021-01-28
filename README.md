@@ -12,6 +12,12 @@ $EDITOR is used for bash. For Windows OS notepad or other windows editor.
 * mcli - Mongo client based on pymongo
 * rcli - Redis client based on pyredis
 
+## Installation
+
+``` bash
+pip install dbcli_mongo_redis
+```
+
 #### mcli usage examples
 ``` bash
 mcli list-dbs
