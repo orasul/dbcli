@@ -34,8 +34,8 @@ def cli(ctx, host, port, database, collection):
     if database and collection:
         db = cl[database]
         ctx.obj["Collection"] = db[collection]
-    else:
-        raise click.ClickException("Database and collection should be set")
+    if database:
+        ctx.obj["Database"] = cl[database]
     ctx.obj["MongoClient"] = cl
 
 
@@ -50,25 +50,29 @@ def list_dbs(ctx):
 
 
 @cli.command()
-@click.option("-d", "--database", help="Database name.")
 @click.pass_context
-def list_cols(ctx, database):
+def list_cols(ctx):
     """List collections in DB"""
-    cl = ctx.obj["MongoClient"]
-    db = cl[database]
+    try:
+        db = ctx.obj["Database"]
+    except KeyError:
+        raise click.ClickException("Database name should be set")
     cols = db.list_collections()
     for col in cols:
         print(col["name"])
 
 
 @cli.command()
-@click.option("-f", "--filter", "filt", default="{}", help="Filter json.")
+@click.option("-f", "--filter", default="{}", help="Filter json.")
 @click.pass_context
-def list_docs(ctx, filt):
+def list_docs(ctx, filter):
     """List document ids from collection"""
-    coll = ctx.obj["Collection"]
-    filt = json.loads(filt)
-    data = coll.find(filt)
+    try:
+        coll = ctx.obj["Collection"]
+    except KeyError:
+        raise click.ClickException("Both collection and db name should be set")
+    filter = json.loads(filter)
+    data = coll.find(filter)
     for doc in data:
         if isinstance(doc["_id"], ObjectId):
             print("ObjectId: ", end="")
@@ -82,18 +86,21 @@ def list_docs(ctx, filt):
 @click.pass_context
 def show_doc(ctx, document_id, document_object_id, flatten):
     """Show document by id"""
-    coll = ctx.obj["Collection"]
+    try:
+        coll = ctx.obj["Collection"]
+    except KeyError:
+        raise click.ClickException("Both collection and db name should be set")
     # make filter using id or object_id
     if document_id:
-        filt = {"_id": document_id}
+        filter = {"_id": document_id}
     elif document_object_id:
-        filt = {"_id": ObjectId(document_object_id)}
+        filter = {"_id": ObjectId(document_object_id)}
     else:
         raise click.ClickException(
             "Either --document-object-id or\
                             --document-id should be set"
         )
-    data = coll.find_one(filt)
+    data = coll.find_one(filter)
     # print result using flatten json format
     if flatten:
         if data:
@@ -110,7 +117,10 @@ def show_doc(ctx, document_id, document_object_id, flatten):
 @click.pass_context
 def add_doc(ctx):
     """Add document to collection"""
-    coll = ctx.obj["Collection"]
+    try:
+        coll = ctx.obj["Collection"]
+    except KeyError:
+        raise click.ClickException("Both collection and db name should be set")
     new_doc = {"title": "titlename", "key1": "value1", "key2": "value2"}
     edited_doc = click.edit(json.dumps(new_doc, indent=4), **js_opts)
     # insert json-format data into db
@@ -130,7 +140,10 @@ def add_doc(ctx):
 @click.pass_context
 def edit_doc(ctx, document_id, document_object_id):
     """Edit document"""
-    collection = ctx.obj["Collection"]
+    try:
+        coll = ctx.obj["Collection"]
+    except KeyError:
+        raise click.ClickException("Both collection and db name should be set")
     # make filter using id or object_id
     if document_id:
         filt = {"_id": document_id}
@@ -141,7 +154,7 @@ def edit_doc(ctx, document_id, document_object_id):
             "Either --document-object-id or\
                             --document-id should be set"
         )
-    data = collection.find_one(filt)
+    data = coll.find_one(filt)
     if data:
         dumped_obj = json.loads(dumps(data))
         edited_doc = click.edit(json.dumps(dumped_obj, indent=4), **js_opts)
@@ -149,7 +162,7 @@ def edit_doc(ctx, document_id, document_object_id):
         raise click.ClickException("No document with this id or ObjectId")
     if edited_doc:
         try:
-            collection.replace_one(filt, loads(edited_doc))
+            coll.replace_one(filt, loads(edited_doc))
         except Exception as ex:
             print("Json?", ex)
 
@@ -160,7 +173,10 @@ def edit_doc(ctx, document_id, document_object_id):
 @click.pass_context
 def del_doc(ctx, document_id, document_object_id):
     """Delete document from db"""
-    collection = ctx.obj["Collection"]
+    try:
+        coll = ctx.obj["Collection"]
+    except KeyError:
+        raise click.ClickException("Both collection and db name should be set")
     # make filter using id or object_id
     if document_id:
         filt = {"_id": document_id}
@@ -171,7 +187,7 @@ def del_doc(ctx, document_id, document_object_id):
             "Either --document-object-id or\
                             --document-id should be set"
         )
-    collection.delete_one(filt)
+    coll.delete_one(filt)
 
 
 def _main():
