@@ -1,5 +1,14 @@
 # dbcli
-DataBase cli utilities
+
+dbcli provides lightweight utilities set for basic CRUD operations for MongoDB and Redis.
+
+With mcli You can access mongo documents for create and edit operations using your favourite text editor. It validates document and performs add and update operations.
+
+rcli provides similar interface for Redis DB. You are able to edit strings(bytes), lists and hashs with json-like syntax in your text editor.
+
+$EDITOR is used for bash. For Windows OS notepad or other windows editor.
+
+## DataBase cli utilities
 * mcli - Mongo client based on pymongo
 * rcli - Redis client based on pyredis
 
@@ -39,12 +48,12 @@ Inspired by [dbcli](https://www.dbcli.com).
 
 ## Limitations
 
-Should avoid using in production and for huge amount of data.
+Should avoid using in production and for huge amount of data. Since it's interactive tool it shouldn't be used for automatic updates of multiple docs.
 
 
 ## License & Authors
 
-- Authors:: Rasul Osmanov, Artur Krasnykh
+- Authors: Rasul Osmanov, Artur Krasnykh
 
 ```text
 Copyright (c) 2020, Rasul Osmanov
