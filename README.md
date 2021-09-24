@@ -8,6 +8,8 @@ rcli provides similar interface for Redis DB. You are able to edit strings(bytes
 
 $EDITOR is used for bash. For Windows OS notepad or other windows editor.
 
+[![Downloads](https://pepy.tech/badge/dbcli-mongo-redis/month)](https://pepy.tech/project/dbcli-mongo-redis)
+
 ## DataBase cli utilities
 * mcli - Mongo client based on pymongo
 * rcli - Redis client based on pyredis
@@ -15,7 +17,7 @@ $EDITOR is used for bash. For Windows OS notepad or other windows editor.
 ## Installation
 
 ``` bash
-pip install dbcli_mongo_redis
+pip install dbcli-mongo-redis
 ```
 
 #### mcli usage examples
