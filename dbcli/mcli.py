@@ -28,7 +28,7 @@ js_opts = {"require_save": False, "extension": ".json"}
 @click.group()
 @click.option("-h", "--host", default="localhost", help="MongoDB host.")
 @click.option("-p", "--port", default=27017, help="MongoDB port.")
-@click.option("-d", "--database", default=False, help="Database name.")
+@click.option("-d", "--database", default="local", help="Database name.")
 @click.option("-c", "--collection", help="Collection.")
 @click.pass_context
 def cli(ctx, host, port, database, collection):
