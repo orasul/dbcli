@@ -132,7 +132,7 @@ def add_doc(ctx):
         try:
             data = json.loads(edited_doc)
             print(json.dumps(data, indent=4, default=json_handler))
-            inserted_id = coll.insert(data)
+            inserted_id = coll.insert_one(data)
             print(f"Inserted ObjectId: {inserted_id}")
         except Exception as ex:
             print("Json?", ex)
