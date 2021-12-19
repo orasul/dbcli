@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="dbcli_mongo_redis",
-    version="0.3.5",
+    version="0.3.6",
     description="Mongo and redis cli",
     long_description=long_description,
     long_description_content_type="text/markdown",

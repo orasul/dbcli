@@ -27,6 +27,7 @@ pip install dbcli-mongo-redis
 mcli list-dbs
 mcli list-cols -d books
 mcli -d books -c authors list-docs
+mcli -d books -c authors list-docs -f '{"Language":"Chinese"}'
 mcli -d aws -c images show-doc -i ami-eede2314
 mcli --database aws --collection images show-doc -i ami-eede2314
 mcli --database aws --collection images show-doc --document-id ami-eede2314
